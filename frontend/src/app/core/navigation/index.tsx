@@ -4,7 +4,7 @@ import {
     Routes,
     Route,
   } from "react-router-dom"
-import { App } from "../../module/screen/App"
+import { App } from "../../screen/Home"
 
 export default function Navigation() {
     return <BrowserRouter>
