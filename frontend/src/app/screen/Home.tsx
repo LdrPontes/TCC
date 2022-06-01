@@ -9,6 +9,7 @@ import Maps from "../../components/Maps"
 import { MockOntologyRepository } from "../data/repositories/MockOntologyRepository"
 import { OntologyClass } from "../domain/models/OntologyClass"
 import { AccordionItemModel } from "../../components/CustomAccordion"
+import SearchModal from "../../components/SearchModal"
 
 
 const mapOntologyToDrawerItem = (ontologies: OntologyClass[]): AccordionItemModel[] => {
@@ -43,7 +44,11 @@ export const App = () => {
   return (<ChakraProvider theme={theme}>
     <Box display='flex' flexDirection="row" width="100vw" height="100vh">
       {ontology && <CustomDrawer items={mapOntologyToDrawerItem(ontology)} />}
-      <Maps />
+      <Box display="flex" width="100vw" height="100vh" position="relative">
+        <SearchModal />
+        <Maps />
+      </Box>
+
     </Box>
   </ChakraProvider>)
 }

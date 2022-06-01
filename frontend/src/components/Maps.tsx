@@ -18,6 +18,7 @@ const Maps: React.FC = () => {
       streetView={undefined}
       zoom={12} />
   </LoadScript >;
+
 }
 
 export default Maps;
