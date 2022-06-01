@@ -3,4 +3,6 @@ export interface OntologyClass {
   label: string;
   props?: Map<string, any>;
   children: OntologyClass[];
+  //TODO Data Properties
+  //TODO Object Properties
 }
