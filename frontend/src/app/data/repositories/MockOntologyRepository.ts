@@ -5,21 +5,21 @@ export class MockOntologyRepository extends OntologyRepository {
   async getOntology(): Promise<OntologyClass[]> {
     return [
       {
-        id: "0",
-        label: "Educational Institution",
+        fullName: "0",
+        name: "Educational Institution",
         children: [
           {
-            id: "1",
-            label: 'University',
+            fullName: "1",
+            name: 'University',
             children: [
               {
-                id: "2",
-                label: 'UTFPR',
+                fullName: "2",
+                name: 'UTFPR',
                 children: []
               },
               {
-                id: "3",
-                label: 'UFPR',
+                fullName: "3",
+                name: 'UFPR',
                 children: []
               }
             ]
@@ -27,16 +27,16 @@ export class MockOntologyRepository extends OntologyRepository {
         ]
       },
       {
-        id: "4",
-        label: "Access Point",
+        fullName: "4",
+        name: "Access Point",
         children: [
           {
-            id: "5",
-            label: 'Bus Stop',
+            fullName: "5",
+            name: 'Bus Stop',
             children: [
               {
-                id: "6",
-                label: 'Bus Stop A',
+                fullName: "6",
+                name: 'Bus Stop A',
                 children: []
               }
             ]
@@ -44,12 +44,12 @@ export class MockOntologyRepository extends OntologyRepository {
         ]
       },
       {
-        id: "7",
-        label: 'Bus Station',
+        fullName: "7",
+        name: 'Bus Station',
         children: [
           {
-            id: "8",
-            label: 'Bus Station A',
+            fullName: "8",
+            name: 'Bus Station A',
             children: []
           }
         ]

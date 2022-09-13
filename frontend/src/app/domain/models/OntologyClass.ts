@@ -1,8 +1,5 @@
 export interface OntologyClass {
-  id: string;
-  label: string;
-  props?: Map<string, any>;
+  name: string;
+  fullName: string;
   children: OntologyClass[];
-  //TODO Data Properties
-  //TODO Object Properties
 }

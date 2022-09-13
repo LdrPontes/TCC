@@ -16,9 +16,15 @@ export type CustomDrawerProps = {
 
 const CustomDrawer: React.FC<CustomDrawerProps> = ({ items }) => {
   return (
-    <VStack alignContent="start" width="20vw" boxShadow="rgba(0, 0, 0, 0.35) 0px 5px 15px" zIndex={1}>
+    <VStack alignContent="start" boxShadow="rgba(0, 0, 0, 0.35) 0px 5px 15px" zIndex={1}>
       <Text fontSize='md' fontWeight="bold" marginTop={4}>Ontology</Text>
-      <VStack width="20vw" padding={4} >
+      <VStack
+        overflowY="auto"
+        padding={4}
+        maxHeight="100vh" 
+        flexGrow={0} 
+        backgroundColor="white" 
+        alignItems="start">
         <HStack>
           <CustomInput placeholder='Search' />
           <IconButton aria-label="Filter" outline="none" borderRadius="30" icon={<RiFilter3Line />} colorScheme="teal" />

@@ -50,7 +50,7 @@ const SearchModal: React.FC = () => {
       </HStack>
     
     </Box>;
-  }, [countTriples, setIsOpen]);
+  }, [countTriples]);
 
 
   return isOpen ? searchModal : button;

@@ -6,10 +6,10 @@ import {
 import CustomDrawer from "../../components/CustomDrawer"
 import { theme } from "../../constants/theme"
 import Maps from "../../components/Maps"
-import { MockOntologyRepository } from "../data/repositories/MockOntologyRepository"
 import { OntologyClass } from "../domain/models/OntologyClass"
 import { AccordionItemModel } from "../../components/CustomAccordion"
 import SearchModal from "../../components/SearchModal"
+import { GraphDBRepository } from "../data/repositories/GraphDBRepository"
 
 
 const mapOntologyToDrawerItem = (ontologies: OntologyClass[]): AccordionItemModel[] => {
@@ -17,8 +17,8 @@ const mapOntologyToDrawerItem = (ontologies: OntologyClass[]): AccordionItemMode
 
   ontologies?.forEach((item: OntologyClass) => {
     const result = {
-      id: item.id,
-      title: item.label,
+      id: item.fullName,
+      title: item.name,
       isSelected: false,
       children: mapOntologyToDrawerItem(item.children),
     };
@@ -34,7 +34,8 @@ export const App = () => {
 
   React.useEffect(() => {
     const getOntology = async () => {
-      const response = await new MockOntologyRepository().getOntology();
+      const response = await new GraphDBRepository().getOntology();
+      console.log(response);
       setOntology(response);
     }
 
