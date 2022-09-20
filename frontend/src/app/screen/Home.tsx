@@ -86,7 +86,6 @@ export const App = () => {
       });
 
       Promise.all(ontology).then((result) => {
-        console.log(result);
         setOntology(result);
       });
     }

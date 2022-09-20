@@ -16,7 +16,6 @@ class GraphDBRepository implements OntologyRepository {
           children: this.mapChildren(child.children),
         }
       });
-      console.log(ontologyClasses);
       return ontologyClasses;
     } catch (error) {
       console.log(error);
@@ -53,8 +52,6 @@ class GraphDBRepository implements OntologyRepository {
           });
         }
       });
-
-      console.log(instances);
       
       return instances;
     } catch (error) {
