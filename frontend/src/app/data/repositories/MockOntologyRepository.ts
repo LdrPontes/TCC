@@ -1,7 +1,11 @@
+import { Instance } from "../../domain/models/Instance";
 import { OntologyClass } from "../../domain/models/OntologyClass";
 import { OntologyRepository } from "../../domain/repositories/OntologyRepository";
 
 export class MockOntologyRepository extends OntologyRepository {
+  async getOntologyClassData(className: string): Promise<Instance[]> {
+    return [];
+  }
   async getOntology(): Promise<OntologyClass[]> {
     return [
       {

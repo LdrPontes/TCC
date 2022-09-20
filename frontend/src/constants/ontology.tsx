@@ -1,0 +1,1 @@
+export const ontologyPrefix = 'http://www.semanticweb.org/mateus/ontologies/2019/9/mobility_&_education#';
