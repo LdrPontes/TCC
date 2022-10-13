@@ -698,7 +698,7 @@ Universidade Tecnológica Federal do Paraná | 2019</rdfs:comment>
 
     <owl:NamedIndividual rdf:about="http://www.semanticweb.org/mateus/ontologies/2019/9/mobility_&amp;_education#endereco_1972_3931">
         <rdf:type rdf:resource="http://www.semanticweb.org/mateus/ontologies/2019/9/mobility_&amp;_education#Address"/>
-        <hasName rdf:datatype="http://www.w3.org/2001/XMLSchema#string">R. AFFIFE MANSUR</hasName>
+        <hasName rdf:datatype="http://www.w3.org/2001/XMLSchema#string">R. AFFIFE MANSUR, 565</hasName>
         <hasNeighborhood rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Novo Mundo</hasNeighborhood>
     </owl:NamedIndividual>
     
@@ -718,7 +718,7 @@ Universidade Tecnológica Federal do Paraná | 2019</rdfs:comment>
 
     <owl:NamedIndividual rdf:about="http://www.semanticweb.org/mateus/ontologies/2019/9/mobility_&amp;_education#endereco_588_3891">
         <rdf:type rdf:resource="http://www.semanticweb.org/mateus/ontologies/2019/9/mobility_&amp;_education#Address"/>
-        <hasName>AV. SETE DE SETEMBRO</hasName>
+        <hasName>AV. SETE DE SETEMBRO, 3165</hasName>
         <hasNeighborhood>Rebouças</hasNeighborhood>
     </owl:NamedIndividual>
     
