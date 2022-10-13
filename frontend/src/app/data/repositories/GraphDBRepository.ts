@@ -6,7 +6,7 @@ import { Instance } from '../../domain/models/Instance';
 class GraphDBRepository implements OntologyRepository {
   async getOntology(): Promise<OntologyClass[]> {
     try {
-      const response  = await http.get('rest/class-hierarchy?graphURI=');
+      const response = await http.get('rest/class-hierarchy?graphURI=');
       const data = response.data;
 
       const ontologyClasses = data.children.map((child: any) => {
@@ -34,17 +34,27 @@ class GraphDBRepository implements OntologyRepository {
           filter not exists { ?instance rdf:type ?value }
       }`);
 
-      const response  = await http.get(`repositories/TCC?query=${query}`);
+      const response = await http.get(`repositories/TCC?query=${query}`);
       const data = response.data;
 
       const instances: Instance[] = [];
-      
+
       data.results.bindings.forEach((binding: any) => {
         const instance = instances.find(instance => instance.fullName === binding.instance.value);
         if (instance) {
-          instance.properties.set(binding.property.value, binding.value.value);
+          const currentValue = instance.properties.get(binding.property.value);
+          if (currentValue) {
+            if (Array.isArray(currentValue)) {
+              instance.properties.set(binding.property.value, [...currentValue, binding.value.value]);
+            } else {
+              instance.properties.set(binding.property.value, [currentValue, binding.value.value]);
+            }
+
+          } else {
+            instance.properties.set(binding.property.value, binding.value.value);
+          }
         } else {
-          const properties = new Map<string, string>();
+          const properties = new Map<string, string | string[]>();
           properties.set(binding.property.value, binding.value.value);
           instances.push({
             fullName: binding.instance.value,
@@ -52,7 +62,7 @@ class GraphDBRepository implements OntologyRepository {
           });
         }
       });
-      
+
       return instances;
     } catch (error) {
       console.log(error);
