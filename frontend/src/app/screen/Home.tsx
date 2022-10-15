@@ -12,7 +12,6 @@ import SearchModal from "../../components/SearchModal";
 import GraphDBRepository from "../data/repositories/GraphDBRepository";
 import { Instance } from "../domain/models/Instance";
 import { ontologyPrefix } from "../../constants/ontology";
-import Geocode from "react-geocode";
 import { mapEntityToImage } from "../../constants/images";
 
 const mapInstanceToDrawerItem = (instances: Instance[]): AccordionItemModel[] => {
@@ -102,8 +101,6 @@ export const App = () => {
 
   React.useEffect(() => {
     const getBusMarkers = async () => {
-      Geocode.setApiKey("AIzaSyAHvBiL9YuOdkfgaZ1M9CGgMkx5hPEUfmE");
-
       const getInstanceAddress = async (ontology: OntologyClass[]) => {
         for (let i = 0; i < ontology.length; i++) {
           const item = ontology[i];
@@ -112,17 +109,14 @@ export const App = () => {
           } else {
             for (let i = 0; i < item.instances!.length; i++) {
               const instance = item.instances![i];
-              const address = instance.properties.get(`${ontologyPrefix}hasName`) as string;
-
+              const address = JSON.parse(instance.properties.get(`${ontologyPrefix}hasLatLng`) as string);
+              
               try {
-                const response = await Geocode.fromAddress(`${address}`);
-                const { lat, lng } = response.results[0].geometry.location;
-
                 setMarkers((prev) => [{
                   id: instance.fullName,
                   iconUrl: mapEntityToImage(item.name),
-                  lat: lat,
-                  lng: lng,
+                  lat: parseFloat(address['LAT']),
+                  lng: parseFloat(address['LON']),
                 }, ...prev,]);
               } catch (err) {
               }
@@ -154,8 +148,6 @@ export const App = () => {
 
   React.useEffect(() => {
     const getMarkers = async () => {
-      Geocode.setApiKey("AIzaSyAHvBiL9YuOdkfgaZ1M9CGgMkx5hPEUfmE");
-
       const addresses = ontology?.filter((item: OntologyClass) => item.name.includes('Address'))[0].instances;
 
       const getInstanceAddress = async (ontology: OntologyClass[]) => {
@@ -169,14 +161,14 @@ export const App = () => {
               try {
                 const address = instance.properties.get(`${ontologyPrefix}isLocated`) as string;
                 const addressProps = addresses?.filter((item: Instance) => item.fullName === address)[0].properties;
-                const response = await Geocode.fromAddress(`${addressProps!.get(`${ontologyPrefix}hasName` as string)}, ${addressProps!.get(`${ontologyPrefix}hasNeighborhood`) as string}`);
-                const { lat, lng } = response.results[0].geometry.location;
-
+                const response = JSON.parse(addressProps!.get(`${ontologyPrefix}hasLatLng`) as string);
+                console.log(`Adress LAT LONG ${response}}`)
+                
                 setMarkers((prev) => [...prev, {
                   id: instance.fullName,
                   iconUrl: mapEntityToImage(item.name),
-                  lat: lat,
-                  lng: lng,
+                  lat: parseFloat(response['LAT']),
+                  lng: parseFloat(response['LON']),
                 },]);
               } catch (err) {
                 // console.log(err);
