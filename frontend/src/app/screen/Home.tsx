@@ -110,7 +110,7 @@ export const App = () => {
             for (let i = 0; i < item.instances!.length; i++) {
               const instance = item.instances![i];
               const address = JSON.parse(instance.properties.get(`${ontologyPrefix}hasLatLng`) as string);
-              
+
               try {
                 setMarkers((prev) => [{
                   id: instance.fullName,
@@ -162,8 +162,7 @@ export const App = () => {
                 const address = instance.properties.get(`${ontologyPrefix}isLocated`) as string;
                 const addressProps = addresses?.filter((item: Instance) => item.fullName === address)[0].properties;
                 const response = JSON.parse(addressProps!.get(`${ontologyPrefix}hasLatLng`) as string);
-                console.log(`Adress LAT LONG ${response}}`)
-                
+
                 setMarkers((prev) => [...prev, {
                   id: instance.fullName,
                   iconUrl: mapEntityToImage(item.name),
@@ -196,67 +195,94 @@ export const App = () => {
     getMarkers();
   }, [ontology]);
 
-  React.useEffect(() => {
-    const getLines = async () => {
-      const getLine = async (ontology: OntologyClass[]) => {
-        for (let i = 0; i < ontology.length; i++) {
-          const item = ontology[i];
-          if (item.children.length > 0) {
-            await getLine(item.children);
-          } else {
-            for (let i = 0; i < item.instances!.length; i++) {
-              const instance = item.instances![i];
-              const line = instance.properties.get(`${ontologyPrefix}isNearAccessPoint`);
-              
-              if (Array.isArray(line)) {
-                line.forEach((lineItem: string) => {
-                  try {
-                    const startMaker = markers.filter((item: MarkerProps) => item.id === instance.fullName)[0];
-                    const endMaker = markers.filter((item: MarkerProps) => item.id === lineItem)[0];
-                    const resultLine = { start: { lat: startMaker.lat, lng: startMaker.lng }, end: { lat: endMaker.lat, lng: endMaker.lng } };
-                    setLines((prev) => [...prev, resultLine]);
-                  } catch (err) {
-                    console.log(err);
-                  }
-                });
+  // React.useEffect(() => {
+  //   const getLines = async () => {
+  //     const getLine = async (ontology: OntologyClass[]) => {
+  //       for (let i = 0; i < ontology.length; i++) {
+  //         const item = ontology[i];
+  //         if (item.children.length > 0) {
+  //           await getLine(item.children);
+  //         } else {
+  //           for (let i = 0; i < item.instances!.length; i++) {
+  //             const instance = item.instances![i];
+  //             const line = instance.properties.get(`${ontologyPrefix}isNearAccessPoint`);
 
-              } else {
-                try {
-                  const startMaker = markers.filter((item: MarkerProps) => item.id === instance.fullName)[0];
-                  const endMaker = markers.filter((item: MarkerProps) => item.id === line)[0];
-                  const resultLine = { start: { lat: startMaker.lat, lng: startMaker.lng }, end: { lat: endMaker.lat, lng: endMaker.lng } };
-                  setLines((prev) => [...prev, resultLine]);
-                } catch (err) {
-                  console.log(err);
-                }
-              }
+  //             if (Array.isArray(line)) {
+  //               line.forEach((lineItem: string) => {
+  //                 try {
+  //                   const startMaker = markers.filter((item: MarkerProps) => item.id === instance.fullName)[0];
+  //                   const endMaker = markers.filter((item: MarkerProps) => item.id === lineItem)[0];
+  //                   const resultLine = { start: { lat: startMaker.lat, lng: startMaker.lng }, end: { lat: endMaker.lat, lng: endMaker.lng } };
+  //                   setLines((prev) => [...prev, resultLine]);
+  //                 } catch (err) {
+  //                   console.log(err);
+  //                 }
+  //               });
 
-            }
+  //             } else {
+  //               try {
+  //                 const startMaker = markers.filter((item: MarkerProps) => item.id === instance.fullName)[0];
+  //                 const endMaker = markers.filter((item: MarkerProps) => item.id === line)[0];
+  //                 const resultLine = { start: { lat: startMaker.lat, lng: startMaker.lng }, end: { lat: endMaker.lat, lng: endMaker.lng } };
+  //                 setLines((prev) => [...prev, resultLine]);
+  //               } catch (err) {
+  //                 console.log(err);
+  //               }
+  //             }
 
-          }
-        }
-      };
+  //           }
 
-      if (ontology) {
-        for (let i = 0; i < ontology!.length; i++) {
-          const item = ontology![i];
-          if (item.children.length > 0) {
-            await getLine(item.children);
-          } else {
-            await getLine([item]);
-          }
+  //         }
+  //       }
+  //     };
+
+  //     if (ontology) {
+  //       for (let i = 0; i < ontology!.length; i++) {
+  //         const item = ontology![i];
+  //         if (item.children.length > 0) {
+  //           await getLine(item.children);
+  //         } else {
+  //           await getLine([item]);
+  //         }
+  //       }
+  //     }
+  //   };
+  //   if (!isLoading)
+  //     getLines();
+  // }, [markers, ontology, isLoading]);
+
+  const subjects = React.useMemo(() => {
+    const subjects: OntologyClass[] = [];
+
+    const getSubjectsChildren = (children: OntologyClass[]) => {
+      for (let i = 0; i < children!.length; i++) {
+        const item = children![i];
+        if (item.children.length > 0) {
+          getSubjectsChildren(item.children);
+        } else {
+          subjects.push(item)
         }
       }
-    };
-    if (!isLoading)
-      getLines();
-  }, [markers, ontology, isLoading]);
+    }
+
+    if (ontology) {
+      for (let i = 0; i < ontology!.length; i++) {
+        const item = ontology![i];
+        subjects.push(item);
+        if (item.children.length > 0) {
+          getSubjectsChildren(item.children);
+        }
+      }
+    }
+
+    return subjects;
+  }, [ontology]);
 
   return (<ChakraProvider theme={theme}>
     <Box display='flex' flexDirection="row" width="100vw" height="100vh">
       {ontology && <CustomDrawer items={mapOntologyToDrawerItem(ontology)} />}
       <Box display="flex" width="100vw" height="100vh" position="relative">
-        <SearchModal />
+        <SearchModal subjects={subjects} onSearch={(triple) => GraphDBRepository.searchByObjectProperties(triple)}/>
         {markers && <Maps markers={markers} lines={lines} />}
       </Box>
 

@@ -1,8 +1,20 @@
 import { Instance } from "../../domain/models/Instance";
+import { ObjectSearch } from "../../domain/models/ObjectSearch";
 import { OntologyClass } from "../../domain/models/OntologyClass";
+import { Property } from "../../domain/models/Property";
+import { Triple } from "../../domain/models/Triple";
 import { OntologyRepository } from "../../domain/repositories/OntologyRepository";
 
 export class MockOntologyRepository extends OntologyRepository {
+  getValueByProperty(property: string): Promise<Property[]> {
+    throw new Error("Method not implemented.");
+  }
+  searchByObjectProperties(triple: Triple): Promise<ObjectSearch[]> {
+    throw new Error("Method not implemented.");
+  }
+  async getObjectPropertiesByName(className: string): Promise<Property[]> {
+    return [];
+  }
   async getOntologyClassData(className: string): Promise<Instance[]> {
     return [];
   }

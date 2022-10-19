@@ -708,6 +708,7 @@ Universidade Tecnológica Federal do Paraná | 2019</rdfs:comment>
 
     <owl:NamedIndividual rdf:about="http://www.semanticweb.org/mateus/ontologies/2019/9/mobility_&amp;_education#endereco_1491">
         <rdf:type rdf:resource="http://www.semanticweb.org/mateus/ontologies/2019/9/mobility_&amp;_education#Address"/>
+        <hasLatLng>{&quot;LAT&quot;: &quot;-25.4850273&quot;,&quot;LON&quot;: &quot;-49.203703&quot;}</hasLatLng>
         <hasName>R. AVELINO MANTOVANI, 420</hasName>
         <hasNeighborhood>Uberaba</hasNeighborhood>
     </owl:NamedIndividual>
@@ -718,6 +719,7 @@ Universidade Tecnológica Federal do Paraná | 2019</rdfs:comment>
 
     <owl:NamedIndividual rdf:about="http://www.semanticweb.org/mateus/ontologies/2019/9/mobility_&amp;_education#endereco_1972_3931">
         <rdf:type rdf:resource="http://www.semanticweb.org/mateus/ontologies/2019/9/mobility_&amp;_education#Address"/>
+        <hasLatLng>{&quot;LAT&quot;: &quot;-25.4959958&quot;,&quot;LON&quot;: &quot;-49.3027613&quot;}</hasLatLng>
         <hasName rdf:datatype="http://www.w3.org/2001/XMLSchema#string">R. AFFIFE MANSUR, 565</hasName>
         <hasNeighborhood rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Novo Mundo</hasNeighborhood>
     </owl:NamedIndividual>
@@ -728,6 +730,7 @@ Universidade Tecnológica Federal do Paraná | 2019</rdfs:comment>
 
     <owl:NamedIndividual rdf:about="http://www.semanticweb.org/mateus/ontologies/2019/9/mobility_&amp;_education#endereco_2246">
         <rdf:type rdf:resource="http://www.semanticweb.org/mateus/ontologies/2019/9/mobility_&amp;_education#Address"/>
+        <hasLatLng>{&quot;LAT&quot;: &quot;-25.4470765&quot;,&quot;LON&quot;: &quot;-49.2960527&quot;}</hasLatLng>
         <hasName>AV. VISC. DE GUARAPUAVA, 5581</hasName>
         <hasNeighborhood>Batel</hasNeighborhood>
     </owl:NamedIndividual>
@@ -738,6 +741,7 @@ Universidade Tecnológica Federal do Paraná | 2019</rdfs:comment>
 
     <owl:NamedIndividual rdf:about="http://www.semanticweb.org/mateus/ontologies/2019/9/mobility_&amp;_education#endereco_588_3891">
         <rdf:type rdf:resource="http://www.semanticweb.org/mateus/ontologies/2019/9/mobility_&amp;_education#Address"/>
+        <hasLatLng>{&quot;LAT&quot;: &quot;-25.4392751&quot;,&quot;LON&quot;: &quot;-49.2710135&quot;}</hasLatLng>
         <hasName>AV. SETE DE SETEMBRO, 3165</hasName>
         <hasNeighborhood>Rebouças</hasNeighborhood>
     </owl:NamedIndividual>
