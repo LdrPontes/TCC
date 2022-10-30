@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { GoogleMap, LoadScript, Marker, Polyline } from '@react-google-maps/api';
 import * as mapStyle from '../assets/maps/style.json';
 
@@ -22,6 +22,7 @@ export interface MarkerProps {
 export interface PolylineProps {
   start: { lat: number, lng: number };
   end: { lat: number, lng: number };
+  color?: string,
 }
 
 const Maps: React.FC<MapProps> = ({ markers, lines }) => {
@@ -52,7 +53,7 @@ const Maps: React.FC<MapProps> = ({ markers, lines }) => {
       {isGoogleMapsAPILoaded && lines.map((line, index) => {
         return <Polyline key={index} path={[{ lat: line.start.lat, lng: line.start.lng }, { lat: line.end.lat, lng: line.end.lng }]}
           options={{
-            strokeColor: "#ff2527",
+            strokeColor: line.color ?? "#ff2527",
             strokeOpacity: 1,
             strokeWeight: 3,
           }} />;

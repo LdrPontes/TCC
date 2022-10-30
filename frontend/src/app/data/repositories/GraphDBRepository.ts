@@ -12,8 +12,8 @@ class GraphDBRepository implements OntologyRepository {
     try {
       const query = encodeURIComponent(`PREFIX education: <http://www.semanticweb.org/mateus/ontologies/2019/9/mobility_&_education#>
       PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-      select ?subject ?object where {
-          ?university education:${triple.predicate.replace(ontologyPrefix, '')} ?object . 
+      select distinct ?subject ?object where {
+          ?subject education:${triple.predicate.replace(ontologyPrefix, '')} ?object . 
           ?subject rdf:type education:${triple.subject.replace(ontologyPrefix, '')} . 
           ?object rdf:type education:${triple.object.replace(ontologyPrefix, '')} .
       }`);
@@ -42,7 +42,7 @@ class GraphDBRepository implements OntologyRepository {
     try {
       const query = encodeURIComponent(`PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
       PREFIX education: <http://www.semanticweb.org/mateus/ontologies/2019/9/mobility_&_education#>
-      select ?value where {
+      select distinct ?value where {
            education:${property} rdfs:range ?value
       }`);
 

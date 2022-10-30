@@ -1,4 +1,4 @@
-import { Button, Text, chakra, Box, HStack, Select } from '@chakra-ui/react';
+import { Button, Text, chakra, Box, HStack, Select, extendTheme } from '@chakra-ui/react';
 import React, { useMemo, useState } from 'react';
 import GraphDBRepository from '../app/data/repositories/GraphDBRepository';
 import { OntologyClass } from '../app/domain/models/OntologyClass';
@@ -36,13 +36,18 @@ const SearchModal: React.FC<SearchModalProps> = ({ subjects, onSearch }: SearchM
 
   const handleSubjectChanged = async (index: number, event: React.ChangeEvent<HTMLSelectElement>) => {
     const newTriples = [...triplesSearch];
-    if(newTriples[index]) {
+    if (newTriples[index]) {
       newTriples[index].subject = event.target.value;
+      newTriples[index].predicate = "";
+      newTriples[index].object = "";
     } else {
       newTriples.push({ subject: event.target.value, predicate: "", object: "" });
     }
-   
+
     setTriples(newTriples);
+    setProperties([]);
+    setValues([]);
+
     GraphDBRepository.getObjectPropertiesByName(event.target.value.replace(ontologyPrefix, '')).then((result) => {
       setProperties((prev) => {
         return [...prev.slice(0, index),
@@ -55,7 +60,11 @@ const SearchModal: React.FC<SearchModalProps> = ({ subjects, onSearch }: SearchM
   const handlePropertyChanged = async (index: number, event: React.ChangeEvent<HTMLSelectElement>) => {
     const newTriples = [...triplesSearch];
     newTriples[index].predicate = event.target.value;
+    newTriples[index].object = "";
+
     setTriples(newTriples);
+    setValues([]);
+    
     GraphDBRepository.getValueByProperty(event.target.value.replace(ontologyPrefix, '')).then((result) => {
       setValues((prev) => {
         return [...prev.slice(0, index),
@@ -71,19 +80,18 @@ const SearchModal: React.FC<SearchModalProps> = ({ subjects, onSearch }: SearchM
     setTriples(newTriples);
   }
 
-
   const searchModal = useMemo(() => {
     const triples = [];
-
     for (let i = 0; i < countTriples; i++) {
+      console.log(triplesSearch[i] && triplesSearch[i].object !== "");
       triples.push(<HStack flex={1} height={50} marginBottom={1}>
-        <Select placeholder='What' width={200} height={45} backgroundColor="gray.200" borderRadius={10} onChange={(event) => handleSubjectChanged(i, event)}>
+        <Select placeholder='What' color={triplesSearch[i] && triplesSearch[i].subject !== "" ? "red.500" : 'black'} width={200} height={45} backgroundColor="gray.200" borderRadius={10} onChange={(event) => handleSubjectChanged(i, event)}>
           {subjects.map(e => <option value={e.fullName}>{e.name}</option>)}
         </Select>
-        <Select placeholder='Action' width={200} height={45} backgroundColor="gray.200" borderRadius={10} marginLeft={12} onChange={(event) => handlePropertyChanged(i, event)}>
+        <Select placeholder='Action' color={triplesSearch[i] && triplesSearch[i].predicate !== "" ? "blue.500" : 'black'} width={200} height={45} backgroundColor="gray.200" borderRadius={10} marginLeft={12} onChange={(event) => handlePropertyChanged(i, event)}>
           {properties[i]?.map(e => <option value={e.fullName}>{e.fullName.replace(ontologyPrefix, '')}</option>)}
         </Select>
-        <Select placeholder='Target' width={200} height={45} backgroundColor="gray.200" borderRadius={10} marginLeft={12} onChange={(event) => handleValueChanged(i, event)}>
+        <Select placeholder='Target' color={triplesSearch[i] && triplesSearch[i].object !== "" ? "yellow.500" : 'black'} width={200} height={45} backgroundColor="gray.200" borderRadius={10} marginLeft={12} onChange={(event) => handleValueChanged(i, event)}>
           {values[i]?.map(e => <option value={e.fullName}>{e.fullName.replace(ontologyPrefix, '')}</option>)}
         </Select>
         {/* {i === countTriples - 1 && <Button height={12} width={12} borderRadius={45} backgroundColor="teal.400" onClick={() => setCountTriples(old => old + 1)}>+</Button>} */}
@@ -98,7 +106,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ subjects, onSearch }: SearchM
       </HStack>
 
     </Box>;
-  }, [countTriples, subjects, properties, values]);
+  }, [countTriples, properties, subjects, triplesSearch, values]);
 
 
   return isOpen ? searchModal : button;
