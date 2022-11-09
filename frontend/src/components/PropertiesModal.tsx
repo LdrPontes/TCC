@@ -1,8 +1,10 @@
-import { Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel, Box, HStack, Text, VStack, Link } from '@chakra-ui/react';
+import { Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel, Box, HStack, Text, VStack, Link, IconButton, chakra } from '@chakra-ui/react';
 import React, { useCallback, useEffect, useState } from 'react';
 import GraphDBRepository from '../app/data/repositories/GraphDBRepository';
 import { Instance } from '../app/domain/models/Instance';
 import { ontologyPrefix } from '../constants/ontology';
+import arrowback from "../assets/arrow_back.svg"
+let propertiesModalStack: string[] = [];
 
 export interface PropertiesModalProps {
   fullName: string;
@@ -16,7 +18,7 @@ const PropertiesModal: React.FC<PropertiesModalProps> = ({ fullName }) => {
     const response = await GraphDBRepository.getInstanceData(instanceFullName);
     setInstance(response);
   }, []);
-  
+
   const getInstanceTypes = useCallback(async (instanceFullName: string) => {
     const response = await GraphDBRepository.getInstanceTypes(instanceFullName);
     setInstanceTypes(response);
@@ -27,6 +29,9 @@ const PropertiesModal: React.FC<PropertiesModalProps> = ({ fullName }) => {
     getInstanceTypes(fullName);
   }, [fullName, getInstance, getInstanceTypes]);
 
+  useEffect(() => {
+    propertiesModalStack = [];
+  }, [fullName]);
 
   const getInstanceName = () => {
     if (instance) {
@@ -57,12 +62,21 @@ const PropertiesModal: React.FC<PropertiesModalProps> = ({ fullName }) => {
   }
 
   const handleLinkClick = (link: string) => {
+    if (instance) propertiesModalStack.push(instance.fullName);
     getInstance(link);
     getInstanceTypes(link);
   }
 
+  const handleBackClick = () => {
+    const name = propertiesModalStack.pop()
+    getInstance(name!);
+    getInstanceTypes(name!);
+  }
+
+
   return <Box width={'60vw'}>
     <HStack>
+      {propertiesModalStack.length > 0 && <IconButton aria-label="Back" onClick={handleBackClick} icon={<chakra.img height="24px" src={arrowback} />}/>}
       <Text fontSize='md' flex={3} fontWeight="bold">{getInstanceName()}</Text>
       <Text fontSize='x-small' flex={1} fontWeight="bold">{`URI ${instance?.fullName}`}</Text>
     </HStack>
