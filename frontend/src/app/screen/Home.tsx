@@ -16,7 +16,17 @@ import { mapEntityToImage } from "../../constants/images";
 import { Triple } from "../domain/models/Triple";
 import { getInstanceByName } from "../../utils/ontology";
 import { getNextColor, resetColors } from "../../constants/colors";
-
+import PropertiesModal from "../../components/PropertiesModal";
+import Modal from 'react-modal';
+const customStyles = {
+  content: {
+    top: '50%',
+    left: '50%',
+    right: 'auto',
+    bottom: 'auto',
+    transform: 'translate(-30%, -50%)',
+  },
+};
 const mapInstanceToDrawerItem = (instances: Instance[]): AccordionItemModel[] => {
   const drawerItems: AccordionItemModel[] = []
 
@@ -67,8 +77,8 @@ const mapOntologyToDrawerItem = (ontologies: OntologyClass[]): AccordionItemMode
 export const App = () => {
   const [ontology, setOntology] = React.useState<OntologyClass[] | null>(null);
   const [markers, setMarkers] = React.useState<MarkerProps[]>([]);
-  const [isLoading, setLoading] = React.useState<boolean>(true);
   const [lines, setLines] = React.useState<PolylineProps[]>([]);
+  const [selectedMarker, setSelectedMarker] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     const getOntologyClassData = async (ontology: OntologyClass) => {
@@ -140,8 +150,6 @@ export const App = () => {
             await getInstanceAddress([item]);
           }
         }
-
-        setLoading(false);
       }
 
 
@@ -290,7 +298,10 @@ export const App = () => {
             for (let i = 1; i < lineLatLng.length; i++) {
               const line = lineLatLng[i];
               const lineLast = lineLatLng[i - 1];
-              lines.push({ start: { lat: parseFloat(lineLast['LAT']), lng: parseFloat(lineLast['LON']) }, end: { lat: parseFloat(line['LAT']), lng: parseFloat(line['LON']) }, color: color });
+              lines.push({
+                start: { lat: parseFloat(lineLast['LAT']), lng: parseFloat(lineLast['LON']) }, end: { lat: parseFloat(line['LAT']), lng: parseFloat(line['LON']) }, color: color,
+                id: subject.instance.fullName,
+              });
             }
 
             setLines((prev) => [...prev, ...lines]);
@@ -305,7 +316,10 @@ export const App = () => {
               const line = lineLatLng[i];
               const lineLast = lineLatLng[i - 1];
 
-              lines.push({ start: { lat: parseFloat(lineLast['LAT']), lng: parseFloat(lineLast['LON']) }, end: { lat: parseFloat(line['LAT']), lng: parseFloat(line['LON']) }, color: color });
+              lines.push({
+                start: { lat: parseFloat(lineLast['LAT']), lng: parseFloat(lineLast['LON']) }, end: { lat: parseFloat(line['LAT']), lng: parseFloat(line['LON']) }, color: color,
+                id: value.instance.fullName,
+              });
             }
 
             setLines((prev) => [...prev, ...lines]);
@@ -315,7 +329,7 @@ export const App = () => {
           if (subject.instance && value.instance && triple.predicate === `${ontologyPrefix}isNearAccessPoint`) {
             const startMaker = markers.filter((item: MarkerProps) => item.id === subject.instance!.fullName)[0];
             const endMaker = markers.filter((item: MarkerProps) => item.id === value.instance!.fullName)[0];
-            const resultLine = { start: { lat: startMaker.lat, lng: startMaker.lng }, end: { lat: endMaker.lat, lng: endMaker.lng } };
+            const resultLine = { start: { lat: startMaker.lat, lng: startMaker.lng }, end: { lat: endMaker.lat, lng: endMaker.lng }, id: "" };
             setLines((prev) => [...prev, resultLine]);
           }
         }
@@ -324,12 +338,19 @@ export const App = () => {
 
   }
 
+  const handleMakerClick = (id: string) => {
+    setSelectedMarker(id);
+  }
+
   return (<ChakraProvider theme={theme}>
     <Box display='flex' flexDirection="row" width="100vw" height="100vh">
       {ontology && <CustomDrawer items={mapOntologyToDrawerItem(ontology)} />}
       <Box display="flex" width="100vw" height="100vh" position="relative">
         <SearchModal subjects={subjects} onSearch={handleSearch} />
-        {markers && <Maps markers={markers} lines={lines} />}
+        <Modal isOpen={selectedMarker != null && selectedMarker !== ""} style={customStyles} onRequestClose={() => setSelectedMarker(null)}>
+          <PropertiesModal fullName={selectedMarker ?? ""}/>
+        </Modal>
+        {markers && <Maps markers={markers} lines={lines} onMarkerSelected={handleMakerClick} />}
       </Box>
     </Box>
   </ChakraProvider>)

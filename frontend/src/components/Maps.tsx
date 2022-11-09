@@ -10,6 +10,7 @@ const center = {
 export interface MapProps {
   markers: MarkerProps[];
   lines: PolylineProps[];
+  onMarkerSelected: (fullName: string) => void
 }
 
 export interface MarkerProps {
@@ -20,12 +21,13 @@ export interface MarkerProps {
 }
 
 export interface PolylineProps {
+  id?: string;
   start: { lat: number, lng: number };
   end: { lat: number, lng: number };
   color?: string,
 }
 
-const Maps: React.FC<MapProps> = ({ markers, lines }) => {
+const Maps: React.FC<MapProps> = ({ markers, lines, onMarkerSelected }) => {
   const [isGoogleMapsAPILoaded, setIsGoogleMapsAPILoaded] = useState(false)
 
   return <LoadScript
@@ -45,13 +47,20 @@ const Maps: React.FC<MapProps> = ({ markers, lines }) => {
         return <Marker
           key={index}
           position={{ lat: marker.lat, lng: marker.lng }}
+          onClick={() => onMarkerSelected(marker.id)}
           icon={{
             url: marker.iconUrl,
             scaledSize: new window.google.maps.Size(48, 48)
           }} />
       })}
       {isGoogleMapsAPILoaded && lines.map((line, index) => {
-        return <Polyline key={index} path={[{ lat: line.start.lat, lng: line.start.lng }, { lat: line.end.lat, lng: line.end.lng }]}
+        return <Polyline
+          key={index}
+          path={[{ lat: line.start.lat, lng: line.start.lng }, { lat: line.end.lat, lng: line.end.lng }]}
+          onClick={() => {
+            if (line.id) onMarkerSelected(line.id);
+
+          }}
           options={{
             strokeColor: line.color ?? "#ff2527",
             strokeOpacity: 1,

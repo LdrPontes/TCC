@@ -52,9 +52,9 @@ class GraphDBRepository implements OntologyRepository {
       const properties: Property[] = [];
 
       data.results.bindings.forEach((binding: any) => {
-       properties.push({
+        properties.push({
           fullName: binding.value.value,
-       });
+        });
       });
 
       return properties;
@@ -82,9 +82,9 @@ class GraphDBRepository implements OntologyRepository {
       const properties: Property[] = [];
 
       data.results.bindings.forEach((binding: any) => {
-       properties.push({
+        properties.push({
           fullName: binding.property.value,
-       });
+        });
       });
 
       return properties;
@@ -154,6 +154,59 @@ class GraphDBRepository implements OntologyRepository {
       });
 
       return instances;
+    } catch (error) {
+      console.log(error);
+      return [];
+    }
+  }
+
+  async getInstanceData(fullName: string): Promise<Instance> {
+    try {
+      const response = await http.get(`rest/explore/graph?uri=${encodeURIComponent(fullName)}&inference=explicit&role=subject&bnodes=true&sameAs=true&context=`, { headers: { 'Accept': 'application/x-graphdb-table-results+json' } });
+      const data = response.data;
+
+      const instance: Instance = { fullName: fullName, properties: new Map<string, string | string[]>() };
+
+      data.results.bindings.forEach((binding: any) => {
+        const currentValue = instance.properties.get(binding.predicate.value);
+        if (currentValue) {
+          if (Array.isArray(currentValue)) {
+            instance.properties.set(binding.predicate.value, [...currentValue, binding.object.value]);
+          } else {
+            instance.properties.set(binding.predicate.value, [currentValue, binding.object.value]);
+          }
+
+        } else {
+          instance.properties.set(binding.predicate.value, binding.object.value);
+        }
+      });
+
+      return instance;
+    } catch (error) {
+      console.log(error);
+      return { fullName: fullName, properties: new Map<string, string | string[]>() };
+
+    }
+  }
+  async getInstanceTypes(fullName: string): Promise<string[]> {
+    try {
+      const query = encodeURIComponent(`PREFIX education: <http://www.semanticweb.org/mateus/ontologies/2019/9/mobility_&_education#>
+      select ?property ?value where {
+          education:${fullName.replace(ontologyPrefix, "")} ?property ?value
+      }`);
+
+      const response = await http.get(`repositories/TCC?query=${query}`);
+      const data = response.data;
+
+      const types: string[] = [];
+
+      data.results.bindings.forEach((binding: any) => {
+        if (binding.property.value === 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' && binding.value.value.includes(ontologyPrefix)) {
+          types.push(binding.value.value);
+        }
+      });
+
+      return types;
     } catch (error) {
       console.log(error);
       return [];
