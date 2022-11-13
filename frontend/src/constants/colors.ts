@@ -1,13 +1,12 @@
 export const colors: string[] = [
   '#FF0000',
   '#FF7F00',
-  '#FFFF00',
-  '#00FF00',
-  '#0000FF',
+  '#FFCC00',
+  '#00BA00',
+  '#003CFF',
   '#4B0082',
   '#9400D3',
 ]
-
 
 let nextIndex = 0;
 export const getNextColor = () => {

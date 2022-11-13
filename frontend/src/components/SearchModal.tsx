@@ -1,16 +1,19 @@
 import { Button, Text, chakra, Box, HStack, Select } from '@chakra-ui/react';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import GraphDBRepository from '../app/data/repositories/GraphDBRepository';
 import { OntologyClass } from '../app/domain/models/OntologyClass';
 import { Property } from '../app/domain/models/Property';
 import { Triple } from '../app/domain/models/Triple';
 import search from "../assets/search.svg"
+import { getNextColor, resetColors } from '../constants/colors';
 import { ontologyPrefix } from '../constants/ontology';
 
 export interface SearchModalProps {
   subjects: OntologyClass[];
   onSearch: (triple: Triple[]) => void;
 }
+
+const colors: Map<string, string> = new Map();
 
 const SearchModal: React.FC<SearchModalProps> = ({ subjects, onSearch }: SearchModalProps) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -28,6 +31,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ subjects, onSearch }: SearchM
 
   const closeModal = () => {
     setIsOpen(false);
+    
   }
 
   const removeTriple = (index: number) => {
@@ -48,10 +52,11 @@ const SearchModal: React.FC<SearchModalProps> = ({ subjects, onSearch }: SearchM
   }
 
   const clearModal = () => {
-    setCountTriples(1);
     setTriples([]);
     setProperties([]);
     setValues([]);
+    resetColors();
+    setCountTriples(1);
   };
 
   const handleSubjectChanged = async (index: number, event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -63,6 +68,8 @@ const SearchModal: React.FC<SearchModalProps> = ({ subjects, onSearch }: SearchM
     } else {
       newTriples.push({ subject: event.target.value, predicate: "", object: "" });
     }
+
+    colors.set(event.target.value, colors.get(event.target.value) ?? getNextColor());
 
     setTriples(newTriples);
 
@@ -94,6 +101,9 @@ const SearchModal: React.FC<SearchModalProps> = ({ subjects, onSearch }: SearchM
   const handleValueChanged = (index: number, event: React.ChangeEvent<HTMLSelectElement>) => {
     const newTriples = [...triplesSearch];
     newTriples[index].object = event.target.value;
+
+    colors.set(event.target.value, colors.get(event.target.value) ?? getNextColor());
+
     setTriples(newTriples);
   }
 
@@ -101,13 +111,13 @@ const SearchModal: React.FC<SearchModalProps> = ({ subjects, onSearch }: SearchM
     const triples = [];
     for (let i = 0; i < countTriples; i++) {
       triples.push(<HStack flex={1} height={50} marginBottom={1}>
-        <Select placeholder='What' color={triplesSearch[i] && triplesSearch[i].subject !== "" ? "red.500" : 'black'} width={200} height={45} value={triplesSearch[i]?.subject ?? undefined} backgroundColor="gray.200" borderRadius={10} onChange={(event) => handleSubjectChanged(i, event)}>
+        <Select placeholder='What' color={triplesSearch[i] && triplesSearch[i].subject !== "" ?colors.get(triplesSearch[i].subject): 'black'} width={200} height={45} value={triplesSearch[i]?.subject ?? 'What'} backgroundColor="gray.200" borderRadius={10} onChange={(event) => handleSubjectChanged(i, event)}>
           {subjects.map(e => <option value={e.fullName}>{e.name}</option>)}
         </Select>
-        <Select placeholder='Action' color={triplesSearch[i] && triplesSearch[i].predicate !== "" ? "blue.500" : 'black'} width={200} height={45} value={triplesSearch[i]?.predicate ?? undefined} backgroundColor="gray.200" borderRadius={10} marginLeft={12} onChange={(event) => handlePropertyChanged(i, event)}>
+        <Select placeholder='Action' color={triplesSearch[i] && triplesSearch[i].predicate !== "" ? "blue.500" : 'black'} width={200} height={45} value={triplesSearch[i]?.predicate ?? 'Action'} backgroundColor="gray.200" borderRadius={10} marginLeft={12} onChange={(event) => handlePropertyChanged(i, event)}>
           {properties[i]?.map(e => <option value={e.fullName}>{e.fullName.replace(ontologyPrefix, '')}</option>)}
         </Select>
-        <Select placeholder='Target' color={triplesSearch[i] && triplesSearch[i].object !== "" ? "yellow.500" : 'black'} width={200} height={45} value={triplesSearch[i]?.object ?? undefined} backgroundColor="gray.200" borderRadius={10} marginLeft={12} onChange={(event) => handleValueChanged(i, event)}>
+        <Select placeholder='Target' color={triplesSearch[i] && triplesSearch[i].object !== "" ?colors.get(triplesSearch[i].object): 'black'} width={200} height={45} value={triplesSearch[i]?.object ?? 'Target'} backgroundColor="gray.200" borderRadius={10} marginLeft={12} onChange={(event) => handleValueChanged(i, event)}>
           {values[i]?.map(e => <option value={e.fullName}>{e.fullName.replace(ontologyPrefix, '')}</option>)}
         </Select>
         {i !== 0 && <Button borderRadius={45} backgroundColor="transparent" onClick={() => removeTriple(i)}>X</Button>}
