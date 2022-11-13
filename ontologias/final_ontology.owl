@@ -156,6 +156,7 @@ Universidade Tecnológica Federal do Paraná | 2019</rdfs:comment>
     <owl:ObjectProperty rdf:about="http://www.semanticweb.org/mateus/ontologies/2019/9/mobility_&amp;_education#passBy">
         <rdfs:domain rdf:resource="http://www.semanticweb.org/mateus/ontologies/2019/9/mobility_&amp;_education#Bus"/>
         <rdfs:range rdf:resource="http://www.semanticweb.org/mateus/ontologies/2019/9/mobility_&amp;_education#Bus_Station"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/mateus/ontologies/2019/9/mobility_&amp;_education#Bus_Stop"/>
         <rdfs:comment xml:lang="en">a relation between a bus and a bus station, in which bus pass by some bus station.</rdfs:comment>
     </owl:ObjectProperty>
     

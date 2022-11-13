@@ -1,5 +1,5 @@
-import { Button, Text, chakra, Box, HStack, Select, extendTheme } from '@chakra-ui/react';
-import React, { useMemo, useState } from 'react';
+import { Button, Text, chakra, Box, HStack, Select } from '@chakra-ui/react';
+import React, { useCallback, useMemo, useState } from 'react';
 import GraphDBRepository from '../app/data/repositories/GraphDBRepository';
 import { OntologyClass } from '../app/domain/models/OntologyClass';
 import { Property } from '../app/domain/models/Property';
@@ -9,7 +9,7 @@ import { ontologyPrefix } from '../constants/ontology';
 
 export interface SearchModalProps {
   subjects: OntologyClass[];
-  onSearch: (triple: Triple) => void;
+  onSearch: (triple: Triple[]) => void;
 }
 
 const SearchModal: React.FC<SearchModalProps> = ({ subjects, onSearch }: SearchModalProps) => {
@@ -18,9 +18,6 @@ const SearchModal: React.FC<SearchModalProps> = ({ subjects, onSearch }: SearchM
   const [triplesSearch, setTriples] = useState<Triple[]>([]);
   const [properties, setProperties] = useState<Property[][]>([]);
   const [values, setValues] = useState<Property[][]>([]);
-
-  // const [, setTriples] = useState([]);
-
 
   const button = useMemo(() => {
     return <Button padding={8} margin={8} borderRadius={45} position="absolute" zIndex={999} onClick={() => setIsOpen(true)}>
@@ -31,8 +28,31 @@ const SearchModal: React.FC<SearchModalProps> = ({ subjects, onSearch }: SearchM
 
   const closeModal = () => {
     setIsOpen(false);
-    setCountTriples(1);
   }
+
+  const removeTriple = (index: number) => {
+    const newTriples = [...triplesSearch];
+    newTriples.splice(index , 1);
+    setTriples(newTriples);
+
+    const newProperties = [...properties];
+    newProperties.splice(index, 1);
+    setProperties(newProperties);
+
+    const newValues = [...values];
+    newValues.splice(index, 1);
+    setValues(newValues);
+
+    setCountTriples(countTriples - 1);
+
+  }
+
+  const clearModal = () => {
+    setCountTriples(1);
+    setTriples([]);
+    setProperties([]);
+    setValues([]);
+  };
 
   const handleSubjectChanged = async (index: number, event: React.ChangeEvent<HTMLSelectElement>) => {
     const newTriples = [...triplesSearch];
@@ -45,8 +65,6 @@ const SearchModal: React.FC<SearchModalProps> = ({ subjects, onSearch }: SearchM
     }
 
     setTriples(newTriples);
-    setProperties([]);
-    setValues([]);
 
     GraphDBRepository.getObjectPropertiesByName(event.target.value.replace(ontologyPrefix, '')).then((result) => {
       setProperties((prev) => {
@@ -63,8 +81,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ subjects, onSearch }: SearchM
     newTriples[index].object = "";
 
     setTriples(newTriples);
-    setValues([]);
-    
+
     GraphDBRepository.getValueByProperty(event.target.value.replace(ontologyPrefix, '')).then((result) => {
       setValues((prev) => {
         return [...prev.slice(0, index),
@@ -80,36 +97,38 @@ const SearchModal: React.FC<SearchModalProps> = ({ subjects, onSearch }: SearchM
     setTriples(newTriples);
   }
 
-  const searchModal = useMemo(() => {
+  const searchModal = () => {
     const triples = [];
     for (let i = 0; i < countTriples; i++) {
-      console.log(triplesSearch[i] && triplesSearch[i].object !== "");
       triples.push(<HStack flex={1} height={50} marginBottom={1}>
-        <Select placeholder='What' color={triplesSearch[i] && triplesSearch[i].subject !== "" ? "red.500" : 'black'} width={200} height={45} backgroundColor="gray.200" borderRadius={10} onChange={(event) => handleSubjectChanged(i, event)}>
+        <Select placeholder='What' color={triplesSearch[i] && triplesSearch[i].subject !== "" ? "red.500" : 'black'} width={200} height={45} value={triplesSearch[i]?.subject ?? undefined} backgroundColor="gray.200" borderRadius={10} onChange={(event) => handleSubjectChanged(i, event)}>
           {subjects.map(e => <option value={e.fullName}>{e.name}</option>)}
         </Select>
-        <Select placeholder='Action' color={triplesSearch[i] && triplesSearch[i].predicate !== "" ? "blue.500" : 'black'} width={200} height={45} backgroundColor="gray.200" borderRadius={10} marginLeft={12} onChange={(event) => handlePropertyChanged(i, event)}>
+        <Select placeholder='Action' color={triplesSearch[i] && triplesSearch[i].predicate !== "" ? "blue.500" : 'black'} width={200} height={45} value={triplesSearch[i]?.predicate ?? undefined} backgroundColor="gray.200" borderRadius={10} marginLeft={12} onChange={(event) => handlePropertyChanged(i, event)}>
           {properties[i]?.map(e => <option value={e.fullName}>{e.fullName.replace(ontologyPrefix, '')}</option>)}
         </Select>
-        <Select placeholder='Target' color={triplesSearch[i] && triplesSearch[i].object !== "" ? "yellow.500" : 'black'} width={200} height={45} backgroundColor="gray.200" borderRadius={10} marginLeft={12} onChange={(event) => handleValueChanged(i, event)}>
+        <Select placeholder='Target' color={triplesSearch[i] && triplesSearch[i].object !== "" ? "yellow.500" : 'black'} width={200} height={45} value={triplesSearch[i]?.object ?? undefined} backgroundColor="gray.200" borderRadius={10} marginLeft={12} onChange={(event) => handleValueChanged(i, event)}>
           {values[i]?.map(e => <option value={e.fullName}>{e.fullName.replace(ontologyPrefix, '')}</option>)}
         </Select>
-        {/* {i === countTriples - 1 && <Button height={12} width={12} borderRadius={45} backgroundColor="teal.400" onClick={() => setCountTriples(old => old + 1)}>+</Button>} */}
+        {i !== 0 && <Button borderRadius={45} backgroundColor="transparent" onClick={() => removeTriple(i)}>X</Button>}
+        {i === countTriples - 1 && <Button height={12} width={12} borderRadius={45} backgroundColor="teal.400" onClick={() => setCountTriples(old => old + 1)}>+</Button>}
       </HStack>);
     }
     return <Box padding={8} margin={8} borderRadius={10} position="absolute" backgroundColor="white" zIndex={999}>
-      <Text fontWeight="bold" marginBottom={2}>Define Criteria</Text>
+      <HStack width="100%" justifyContent="space-between" marginBottom={10}>
+        <Text fontWeight="bold" marginBottom={2}>Define Criteria</Text>
+        <Button borderRadius={45} backgroundColor="transparent" onClick={closeModal}>X</Button>
+      </HStack>
       {triples}
       <HStack width="100%" justifyContent="space-between" marginTop={10}>
-        <Button borderRadius={45} disabled={triplesSearch.length === 0} onClick={() => onSearch(triplesSearch[0])}>Apply</Button>
-        <Button borderRadius={45} onClick={closeModal}>Close</Button>
+        <Button borderRadius={45} disabled={triplesSearch.length === 0} onClick={() => onSearch(triplesSearch)}>Apply</Button>
+        <Button borderRadius={45} backgroundColor="red.300" color="white" onClick={clearModal}>Clear</Button>
       </HStack>
-
     </Box>;
-  }, [countTriples, properties, subjects, triplesSearch, values]);
+  }
 
 
-  return isOpen ? searchModal : button;
+  return isOpen ? searchModal() : button;
 }
 
 export default SearchModal;

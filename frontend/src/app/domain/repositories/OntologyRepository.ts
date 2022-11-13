@@ -9,5 +9,5 @@ export abstract class OntologyRepository {
   abstract getOntologyClassData(className: string): Promise<Instance[]>;
   abstract getObjectPropertiesByName(className: string): Promise<Property[]>;
   abstract getValueByProperty(property: string): Promise<Property[]>;
-  abstract searchByObjectProperties(triple: Triple): Promise<ObjectSearch[]>;
+  abstract searchByObjectProperties(triple: Triple[]): Promise<ObjectSearch[]>;
 }

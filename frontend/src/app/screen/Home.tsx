@@ -233,17 +233,21 @@ export const App = () => {
     return subjects;
   }, [ontology]);
 
-  const handleSearch = async (triple: Triple) => {
+  const handleSearch = async (triple: Triple[]) => {
     const triples = await GraphDBRepository.searchByObjectProperties(triple);
     const addresses = ontology?.filter((item: OntologyClass) => item.name.includes('Address'))[0].instances;
     setMarkers([]);
     setLines([]);
     resetColors();
-    triples.forEach(element => {
+
+    for(let i = 0; i < triples.length; i++) {
+      const element = triples[i];
       if (ontology) {
 
         const subject = getInstanceByName({ name: 'topLevel', fullName: 'topLevel', children: ontology }, element.subject);
         const value = getInstanceByName({ name: 'topLevel', fullName: 'topLevel', children: ontology }, element.value);
+        let subjectLatLng = null;
+        let valueLatLng = null;
 
         if (subject && value) {
           if (subject.instance) {
@@ -257,14 +261,13 @@ export const App = () => {
                 latLng = JSON.parse(subject.instance?.properties.get(`${ontologyPrefix}hasLatLng`) as string);
               }
 
-
+              subjectLatLng = latLng;
               setMarkers((prev) => [{
                 id: subject.instance!.fullName,
                 iconUrl: mapEntityToImage(subject.father),
                 lat: parseFloat(latLng['LAT']),
                 lng: parseFloat(latLng['LON']),
               }, ...prev,]);
-              setTimeout(() => { }, 150);
             } catch (err) {
             }
           }
@@ -279,14 +282,13 @@ export const App = () => {
               } else {
                 latLng = JSON.parse(value.instance?.properties.get(`${ontologyPrefix}hasLatLng`) as string);
               }
-
+              valueLatLng = latLng;
               setMarkers((prev) => [{
                 id: value.instance!.fullName,
                 iconUrl: mapEntityToImage(value.father),
                 lat: parseFloat(latLng['LAT']),
                 lng: parseFloat(latLng['LON']),
               }, ...prev,]);
-              setTimeout(() => { }, 150);
             } catch (err) {
             }
           }
@@ -305,7 +307,6 @@ export const App = () => {
             }
 
             setLines((prev) => [...prev, ...lines]);
-            setTimeout(() => { }, 150);
           }
 
           if (value.instance?.properties.get(`${ontologyPrefix}hasLineLatLng`)) {
@@ -323,18 +324,20 @@ export const App = () => {
             }
 
             setLines((prev) => [...prev, ...lines]);
-            setTimeout(() => { }, 150);
           }
 
-          if (subject.instance && value.instance && triple.predicate === `${ontologyPrefix}isNearAccessPoint`) {
-            const startMaker = markers.filter((item: MarkerProps) => item.id === subject.instance!.fullName)[0];
-            const endMaker = markers.filter((item: MarkerProps) => item.id === value.instance!.fullName)[0];
-            const resultLine = { start: { lat: startMaker.lat, lng: startMaker.lng }, end: { lat: endMaker.lat, lng: endMaker.lng }, id: "" };
-            setLines((prev) => [...prev, resultLine]);
+          if (subject.instance && value.instance && triple[0].predicate === `${ontologyPrefix}isNearAccessPoint`) {
+            try {
+              const resultLine = { start: { lat: parseFloat(subjectLatLng!['LAT']), lng: parseFloat(subjectLatLng!['LON']) }, end: { lat: parseFloat(valueLatLng!['LAT']), lng: parseFloat(valueLatLng!['LON']) }, id: "" };
+              setLines((prev) => [...prev, resultLine]);
+            } catch (err) {
+              console.log(err);
+            }
+       
           }
         }
       }
-    });
+    }
 
   }
 

@@ -8,14 +8,32 @@ import { ObjectSearch } from '../../domain/models/ObjectSearch';
 import { Triple } from '../../domain/models/Triple';
 
 class GraphDBRepository implements OntologyRepository {
-  async searchByObjectProperties(triple: Triple): Promise<ObjectSearch[]> {
+  async searchByObjectProperties(triple: Triple[]): Promise<ObjectSearch[]> {
+    const mapVariables = new Map<string, string>();
+
+    triple.forEach((triple, index) => {
+      mapVariables.set(triple.subject, `?subject${index}`);
+      mapVariables.set(triple.object, `?object${index}`);
+    });
+
     try {
-      const query = encodeURIComponent(`PREFIX education: <http://www.semanticweb.org/mateus/ontologies/2019/9/mobility_&_education#>
-      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-      select distinct ?subject ?object where {
-          ?subject education:${triple.predicate.replace(ontologyPrefix, '')} ?object . 
-          ?subject rdf:type education:${triple.subject.replace(ontologyPrefix, '')} . 
-          ?object rdf:type education:${triple.object.replace(ontologyPrefix, '')} .
+      const triples = triple.map((item) => {
+        return `${mapVariables.get(item.subject)} education:${item.predicate.replace(ontologyPrefix, '')} ${mapVariables.get(item.object)} .`;
+      });
+      const triplesTypes = triple.map((item) => {
+        return `${mapVariables.get(item.subject)} rdf:type education:${item.subject.replace(ontologyPrefix, '')} .`;
+      });
+      const triplesObjectTypes = triple.map((item) => {
+        return `${mapVariables.get(item.object)} rdf:type education:${item.object.replace(ontologyPrefix, '')} .`;
+      });
+
+      const query = encodeURIComponent(`PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      PREFIX education: <http://www.semanticweb.org/mateus/ontologies/2019/9/mobility_&_education#>
+      SELECT DISTINCT ${mapVariables.get(triple[0].subject)} ${mapVariables.get(triple[0].object)} 
+      WHERE {
+        ${triples.join('\n')}
+        ${triplesTypes.join('\n')}
+        ${triplesObjectTypes.join('\n')}
       }`);
 
       const response = await http.get(`repositories/TCC?query=${query}`);
@@ -25,9 +43,9 @@ class GraphDBRepository implements OntologyRepository {
 
       data.results.bindings.forEach((binding: any) => {
         search.push({
-          subject: binding.subject.value,
-          value: binding.object.value,
-          property: triple.predicate,
+          subject: binding[mapVariables.get(triple[0].subject)!.replace('?', '')].value,
+          value: binding[mapVariables.get(triple[0].object)!.replace('?', '')].value,
+          property: triple[0].predicate,
         });
       });
       console.log(search);
@@ -46,7 +64,7 @@ class GraphDBRepository implements OntologyRepository {
            education:${property} rdfs:range ?value
       }`);
 
-      const response = await http.get(`repositories/TCC?query=${query}`);
+      const response = await http.get(`repositories/TCC?query=${query}&infer=true`);
       const data = response.data;
 
       const properties: Property[] = [];
@@ -76,7 +94,7 @@ class GraphDBRepository implements OntologyRepository {
           ?property rdf:type owl:ObjectProperty
       }`);
 
-      const response = await http.get(`repositories/TCC?query=${query}`);
+      const response = await http.get(`repositories/TCC?query=${query}&infer=true`);
       const data = response.data;
 
       const properties: Property[] = [];
@@ -162,7 +180,7 @@ class GraphDBRepository implements OntologyRepository {
 
   async getInstanceData(fullName: string): Promise<Instance> {
     try {
-      const response = await http.get(`rest/explore/graph?uri=${encodeURIComponent(fullName)}&inference=explicit&role=subject&bnodes=true&sameAs=true&context=`, { headers: { 'Accept': 'application/x-graphdb-table-results+json' } });
+      const response = await http.get(`rest/explore/graph?uri=${encodeURIComponent(fullName)}&inference=all&role=subject&bnodes=true&sameAs=true&context=`, { headers: { 'Accept': 'application/x-graphdb-table-results+json' } });
       const data = response.data;
 
       const instance: Instance = { fullName: fullName, properties: new Map<string, string | string[]>() };
