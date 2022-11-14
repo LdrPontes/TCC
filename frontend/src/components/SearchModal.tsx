@@ -1,4 +1,4 @@
-import { Button, Text, chakra, Box, HStack, Select } from '@chakra-ui/react';
+import { Button, Text, chakra, Box, HStack, Select, VStack } from '@chakra-ui/react';
 import React, { useMemo, useState } from 'react';
 import GraphDBRepository from '../app/data/repositories/GraphDBRepository';
 import { OntologyClass } from '../app/domain/models/OntologyClass';
@@ -7,6 +7,7 @@ import { Triple } from '../app/domain/models/Triple';
 import search from "../assets/search.svg"
 import { getNextColor, resetColors } from '../constants/colors';
 import { ontologyPrefix } from '../constants/ontology';
+import DataPropertySearchModal from './DataPropertySearchModal';
 
 export interface SearchModalProps {
   subjects: OntologyClass[];
@@ -17,8 +18,10 @@ const colors: Map<string, string> = new Map();
 
 const SearchModal: React.FC<SearchModalProps> = ({ subjects, onSearch }: SearchModalProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isFilterOpen, setFilterOpen] = useState(false);
   const [countTriples, setCountTriples] = useState(1);
   const [triplesSearch, setTriples] = useState<Triple[]>([]);
+  const [triplesFilter, setTriplesFilter] = useState<Triple[]>([]);
   const [properties, setProperties] = useState<Property[][]>([]);
   const [values, setValues] = useState<Property[][]>([]);
 
@@ -31,12 +34,12 @@ const SearchModal: React.FC<SearchModalProps> = ({ subjects, onSearch }: SearchM
 
   const closeModal = () => {
     setIsOpen(false);
-    
+
   }
 
   const removeTriple = (index: number) => {
     const newTriples = [...triplesSearch];
-    newTriples.splice(index , 1);
+    newTriples.splice(index, 1);
     setTriples(newTriples);
 
     const newProperties = [...properties];
@@ -57,6 +60,8 @@ const SearchModal: React.FC<SearchModalProps> = ({ subjects, onSearch }: SearchM
     setValues([]);
     resetColors();
     setCountTriples(1);
+    setTriplesFilter([]);
+    setFilterOpen(false);
   };
 
   const handleSubjectChanged = async (index: number, event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -107,38 +112,62 @@ const SearchModal: React.FC<SearchModalProps> = ({ subjects, onSearch }: SearchM
     setTriples(newTriples);
   }
 
+  const getClasses = (): string[] => {
+    const classes = new Set<string>();
+
+    for (const triple in triplesSearch) {
+      classes.add(triplesSearch[triple].subject);
+      classes.add(triplesSearch[triple].object);
+    }
+
+    return Array.from(classes.values());
+  }
+
+  const handleOnFilter = (triples: Triple[]) => {
+    setTriplesFilter(triples);
+
+    onSearch([...triplesSearch, ...triples]);
+  }
+
   const searchModal = () => {
     const triples = [];
     for (let i = 0; i < countTriples; i++) {
       triples.push(<HStack flex={1} height={50} marginBottom={1}>
-        <Select placeholder='What' color={triplesSearch[i] && triplesSearch[i].subject !== "" ?colors.get(triplesSearch[i].subject): 'black'} width={200} height={45} value={triplesSearch[i]?.subject ?? 'What'} backgroundColor="gray.200" borderRadius={10} onChange={(event) => handleSubjectChanged(i, event)}>
+        <Select placeholder='What' color={triplesSearch[i] && triplesSearch[i].subject !== "" ? colors.get(triplesSearch[i].subject) : 'black'} width={200} height={45} value={triplesSearch[i]?.subject ?? 'What'} backgroundColor="gray.200" borderRadius={10} onChange={(event) => handleSubjectChanged(i, event)}>
           {subjects.map(e => <option value={e.fullName}>{e.name}</option>)}
         </Select>
         <Select placeholder='Action' color={triplesSearch[i] && triplesSearch[i].predicate !== "" ? "blue.500" : 'black'} width={200} height={45} value={triplesSearch[i]?.predicate ?? 'Action'} backgroundColor="gray.200" borderRadius={10} marginLeft={12} onChange={(event) => handlePropertyChanged(i, event)}>
           {properties[i]?.map(e => <option value={e.fullName}>{e.fullName.replace(ontologyPrefix, '')}</option>)}
         </Select>
-        <Select placeholder='Target' color={triplesSearch[i] && triplesSearch[i].object !== "" ?colors.get(triplesSearch[i].object): 'black'} width={200} height={45} value={triplesSearch[i]?.object ?? 'Target'} backgroundColor="gray.200" borderRadius={10} marginLeft={12} onChange={(event) => handleValueChanged(i, event)}>
+        <Select placeholder='Target' color={triplesSearch[i] && triplesSearch[i].object !== "" ? colors.get(triplesSearch[i].object) : 'black'} width={200} height={45} value={triplesSearch[i]?.object ?? 'Target'} backgroundColor="gray.200" borderRadius={10} marginLeft={12} onChange={(event) => handleValueChanged(i, event)}>
           {values[i]?.map(e => <option value={e.fullName}>{e.fullName.replace(ontologyPrefix, '')}</option>)}
         </Select>
         {i !== 0 && <Button borderRadius={45} backgroundColor="transparent" onClick={() => removeTriple(i)}>X</Button>}
         {i === countTriples - 1 && <Button height={12} width={12} borderRadius={45} backgroundColor="teal.400" onClick={() => setCountTriples(old => old + 1)}>+</Button>}
       </HStack>);
     }
-    return <Box padding={8} margin={8} borderRadius={10} position="absolute" backgroundColor="white" zIndex={999}>
+    return <Box backgroundColor="white" zIndex={1} padding={8} marginTop={8} borderRadius={10} >
       <HStack width="100%" justifyContent="space-between" marginBottom={10}>
         <Text fontWeight="bold" marginBottom={2}>Define Criteria</Text>
         <Button borderRadius={45} backgroundColor="transparent" onClick={closeModal}>X</Button>
       </HStack>
       {triples}
       <HStack width="100%" justifyContent="space-between" marginTop={10}>
-        <Button borderRadius={45} disabled={triplesSearch.length === 0} onClick={() => onSearch(triplesSearch)}>Apply</Button>
-        <Button borderRadius={45} backgroundColor="red.300" color="white" onClick={clearModal}>Clear</Button>
+        <Button borderRadius={45} disabled={triplesSearch.length === 0} onClick={() => onSearch(triplesSearch)}>Search</Button>
+        <HStack>
+          <Button disabled={triplesSearch.length === 0} aria-label="Filter" outline="none" borderRadius="30" colorScheme="teal" onClick={() => setFilterOpen(prev => !prev)}>Add filter by Data Properties</Button>
+          <Button borderRadius={45} backgroundColor="red.300" color="white" onClick={clearModal}>Clear</Button>
+        </HStack>
       </HStack>
     </Box>;
   }
 
 
-  return isOpen ? searchModal() : button;
+  return isOpen ?
+    <VStack position="absolute" marginLeft={8}>
+      {searchModal()}
+      <DataPropertySearchModal isOpen={isFilterOpen} classes={getClasses()} onFilterApplied={handleOnFilter} />
+    </VStack> : button;
 }
 
 export default SearchModal;

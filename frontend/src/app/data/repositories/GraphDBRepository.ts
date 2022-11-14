@@ -8,25 +8,67 @@ import { ObjectSearch } from '../../domain/models/ObjectSearch';
 import { Triple } from '../../domain/models/Triple';
 
 class GraphDBRepository implements OntologyRepository {
+  async getDataPropertiesByName(className: string): Promise<Property[]> {
+    try {
+      const query = encodeURIComponent(`PREFIX education: <http://www.semanticweb.org/mateus/ontologies/2019/9/mobility_&_education#>
+      PREFIX owl: <http://www.w3.org/2002/07/owl#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      select distinct ?property where {
+          ?subject rdf:type education:${className.replace(ontologyPrefix, '')} .
+          ?subject ?property ?value .
+          ?property rdf:type owl:DatatypeProperty
+      }`);
+
+      const response = await http.get(`repositories/TCC?query=${query}&infer=true`);
+      const data = response.data;
+
+      const properties: Property[] = [];
+
+      data.results.bindings.forEach((binding: any) => {
+        properties.push({
+          fullName: binding.property.value,
+        });
+      });
+
+      return properties;
+    } catch (error) {
+      console.log(error);
+      return [];
+    }
+  }
   async searchByObjectProperties(triple: Triple[]): Promise<ObjectSearch[]> {
     const mapVariables = new Map<string, string>();
 
     triple.forEach((triple, index) => {
       mapVariables.set(triple.subject, `?subject${index}`);
-      mapVariables.set(triple.object, `?object${index}`);
+      if (triple.object.includes(ontologyPrefix)) {
+        mapVariables.set(triple.object, `?object${index}`);
+      }
     });
 
     try {
       const triples = triple.map((item) => {
-        return `${mapVariables.get(item.subject)} education:${item.predicate.replace(ontologyPrefix, '')} ${mapVariables.get(item.object)} .`;
+        if (isNaN(Number(item.object))) {
+          return `${mapVariables.get(item.subject)} education:${item.predicate.replace(ontologyPrefix, '')} ${item.object.includes(ontologyPrefix) ? mapVariables.get(item.object) : `"${item.object}"`} .`;
+        } else {
+          return `${mapVariables.get(item.subject)} education:${item.predicate.replace(ontologyPrefix, '')} ${item.object.includes(ontologyPrefix) ? mapVariables.get(item.object) : item.object} .`;
+        }
       });
       const triplesTypes = triple.map((item) => {
         return `${mapVariables.get(item.subject)} rdf:type education:${item.subject.replace(ontologyPrefix, '')} .`;
       });
-      const triplesObjectTypes = triple.map((item) => {
+      const triplesObjectTypes = triple.filter((item) => item.object.includes(ontologyPrefix)).map((item) => {
         return `${mapVariables.get(item.object)} rdf:type education:${item.object.replace(ontologyPrefix, '')} .`;
       });
 
+      console.log(`PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      PREFIX education: <http://www.semanticweb.org/mateus/ontologies/2019/9/mobility_&_education#>
+      SELECT DISTINCT ${mapVariables.get(triple[0].subject)} ${mapVariables.get(triple[0].object)} 
+      WHERE {
+        ${triples.join('\n')}
+        ${triplesTypes.join('\n')}
+        ${triplesObjectTypes.join('\n')}
+      }`);
       const query = encodeURIComponent(`PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
       PREFIX education: <http://www.semanticweb.org/mateus/ontologies/2019/9/mobility_&_education#>
       SELECT DISTINCT ${mapVariables.get(triple[0].subject)} ${mapVariables.get(triple[0].object)} 
