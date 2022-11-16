@@ -21,7 +21,6 @@ const SearchModal: React.FC<SearchModalProps> = ({ subjects, onSearch }: SearchM
   const [isFilterOpen, setFilterOpen] = useState(false);
   const [countTriples, setCountTriples] = useState(1);
   const [triplesSearch, setTriples] = useState<Triple[]>([]);
-  const [triplesFilter, setTriplesFilter] = useState<Triple[]>([]);
   const [properties, setProperties] = useState<Property[][]>([]);
   const [values, setValues] = useState<Property[][]>([]);
 
@@ -60,7 +59,6 @@ const SearchModal: React.FC<SearchModalProps> = ({ subjects, onSearch }: SearchM
     setValues([]);
     resetColors();
     setCountTriples(1);
-    setTriplesFilter([]);
     setFilterOpen(false);
   };
 
@@ -124,8 +122,6 @@ const SearchModal: React.FC<SearchModalProps> = ({ subjects, onSearch }: SearchM
   }
 
   const handleOnFilter = (triples: Triple[]) => {
-    setTriplesFilter(triples);
-
     onSearch([...triplesSearch, ...triples]);
   }
 
@@ -166,7 +162,11 @@ const SearchModal: React.FC<SearchModalProps> = ({ subjects, onSearch }: SearchM
   return isOpen ?
     <VStack position="absolute" marginLeft={8}>
       {searchModal()}
-      <DataPropertySearchModal isOpen={isFilterOpen} classes={getClasses()} onFilterApplied={handleOnFilter} />
+      <DataPropertySearchModal
+        isOpen={isFilterOpen}
+        classes={getClasses()}
+        onFilterApplied={handleOnFilter}
+        handleCloseModal={() => setFilterOpen(false)} />
     </VStack> : button;
 }
 

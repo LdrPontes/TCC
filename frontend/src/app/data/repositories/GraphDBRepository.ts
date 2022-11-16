@@ -10,6 +10,7 @@ import { Triple } from '../../domain/models/Triple';
 class GraphDBRepository implements OntologyRepository {
   async getDataPropertiesByName(className: string): Promise<Property[]> {
     try {
+
       const query = encodeURIComponent(`PREFIX education: <http://www.semanticweb.org/mateus/ontologies/2019/9/mobility_&_education#>
       PREFIX owl: <http://www.w3.org/2002/07/owl#>
       PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -30,12 +31,28 @@ class GraphDBRepository implements OntologyRepository {
         });
       });
 
+      const promises = properties.map(async (property) => {
+        const queryPropertyType = encodeURIComponent(`PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+          PREFIX education: <http://www.semanticweb.org/mateus/ontologies/2019/9/mobility_&_education#>
+          select distinct (datatype(?y) as ?datatype) where {
+              ?x education:${property.fullName.replace(ontologyPrefix, '')} ?y .
+          }`);
+
+        const responseType = await http.get(`repositories/TCC?query=${queryPropertyType}&infer=true`);
+        const dataType = responseType.data;
+        property.type = dataType.results.bindings[0].datatype.value;
+      });
+      await Promise.all(promises);
+
+      console.log(properties);
+
       return properties;
     } catch (error) {
       console.log(error);
       return [];
     }
   }
+
   async searchByObjectProperties(triple: Triple[]): Promise<ObjectSearch[]> {
     const mapVariables = new Map<string, string>();
 
@@ -48,10 +65,13 @@ class GraphDBRepository implements OntologyRepository {
 
     try {
       const triples = triple.map((item) => {
-        if (isNaN(Number(item.object))) {
-          return `${mapVariables.get(item.subject)} education:${item.predicate.replace(ontologyPrefix, '')} ${item.object.includes(ontologyPrefix) ? mapVariables.get(item.object) : `"${item.object}"`} .`;
-        } else {
+        if (!isNaN(Number(item.object)) && (item.filter === '=' || item.filter === null || item.filter === undefined)) {
           return `${mapVariables.get(item.subject)} education:${item.predicate.replace(ontologyPrefix, '')} ${item.object.includes(ontologyPrefix) ? mapVariables.get(item.object) : item.object} .`;
+        } else if (!isNaN(Number(item.object)) && item.filter !== null && item.filter !== undefined) {
+          return `${mapVariables.get(item.subject)} education:${item.predicate.replace(ontologyPrefix, '')} ${mapVariables.get(item.subject)}${item.predicate.replace(ontologyPrefix, '')}filter .
+          FILTER (${mapVariables.get(item.subject)}${item.predicate.replace(ontologyPrefix, '')}filter ${item.filter} ${item.object}) .`;
+        } else {
+          return `${mapVariables.get(item.subject)} education:${item.predicate.replace(ontologyPrefix, '')} ${item.object.includes(ontologyPrefix) ? mapVariables.get(item.object) : `"${item.object}"`} .`;
         }
       });
       const triplesTypes = triple.map((item) => {
@@ -61,14 +81,6 @@ class GraphDBRepository implements OntologyRepository {
         return `${mapVariables.get(item.object)} rdf:type education:${item.object.replace(ontologyPrefix, '')} .`;
       });
 
-      console.log(`PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-      PREFIX education: <http://www.semanticweb.org/mateus/ontologies/2019/9/mobility_&_education#>
-      SELECT DISTINCT ${mapVariables.get(triple[0].subject)} ${mapVariables.get(triple[0].object)} 
-      WHERE {
-        ${triples.join('\n')}
-        ${triplesTypes.join('\n')}
-        ${triplesObjectTypes.join('\n')}
-      }`);
       const query = encodeURIComponent(`PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
       PREFIX education: <http://www.semanticweb.org/mateus/ontologies/2019/9/mobility_&_education#>
       SELECT DISTINCT ${mapVariables.get(triple[0].subject)} ${mapVariables.get(triple[0].object)} 
@@ -90,7 +102,6 @@ class GraphDBRepository implements OntologyRepository {
           property: triple[0].predicate,
         });
       });
-      console.log(search);
       return search;
     } catch (error) {
       console.log(error);
