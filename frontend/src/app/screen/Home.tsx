@@ -27,53 +27,6 @@ const customStyles = {
     transform: 'translate(-30%, -50%)',
   },
 };
-const mapInstanceToDrawerItem = (instances: Instance[]): AccordionItemModel[] => {
-  const drawerItems: AccordionItemModel[] = []
-
-  instances?.forEach((item: Instance, index) => {
-    const hasName = item.properties.get(`${ontologyPrefix}hasName`);
-    const title: string = Array.isArray(hasName) ? hasName[0] ?? item.fullName.replace(ontologyPrefix, "") : hasName?.toString() ?? item.fullName.replace(ontologyPrefix, "")
-    const result = {
-      id: item.fullName,
-      title: title,
-      isSelected: false,
-      children: [],
-    };
-
-    drawerItems.push(result);
-  });
-
-  return drawerItems;
-};
-
-const mapOntologyToDrawerItem = (ontologies: OntologyClass[]): AccordionItemModel[] => {
-  const drawerItems: AccordionItemModel[] = []
-
-  ontologies?.forEach((item: OntologyClass) => {
-    if (item.children.length > 0) {
-      const result = {
-        id: item.fullName,
-        title: item.name,
-        isSelected: false,
-        children: mapOntologyToDrawerItem(item.children),
-      };
-
-      drawerItems.push(result);
-    } else if ((item.instances?.length ?? 0) > 0) {
-      const result = {
-        id: item.fullName,
-        title: item.name,
-        isSelected: false,
-        children: mapInstanceToDrawerItem(item.instances!),
-      };
-
-      drawerItems.push(result);
-    }
-  });
-
-  return drawerItems;
-}
-
 export const App = () => {
   const [ontology, setOntology] = React.useState<OntologyClass[] | null>(null);
   const [markers, setMarkers] = React.useState<MarkerProps[]>([]);
@@ -338,19 +291,69 @@ export const App = () => {
         }
       }
     }
-
   }
+
+  const mapInstanceToDrawerItem =  React.useCallback((instances: Instance[]): AccordionItemModel[] => {
+    const drawerItems: AccordionItemModel[] = []
+  
+    instances?.forEach((item: Instance, index) => {
+      const hasName = item.properties.get(`${ontologyPrefix}hasName`);
+      const title: string = Array.isArray(hasName) ? hasName[0] ?? item.fullName.replace(ontologyPrefix, "") : hasName?.toString() ?? item.fullName.replace(ontologyPrefix, "")
+      const result = {
+        id: item.fullName,
+        title: title,
+        isSelected: markers.filter((marker) => marker.id === item.fullName).length > 0 || lines.filter((line) => line.id === item.fullName).length > 0,
+        children: [],
+      };
+  
+      drawerItems.push(result);
+    });
+  
+    return drawerItems;
+  }, [markers, lines]);
+  
+  const mapOntologyToDrawerItem =  React.useCallback((ontologies: OntologyClass[]): AccordionItemModel[] => {
+    const drawerItems: AccordionItemModel[] = []
+  
+    ontologies?.filter((item) => !(item.fullName.includes('Address') || item.fullName.includes('Exam')) ).forEach((item: OntologyClass) => {
+      if (item.children.length > 0) {
+        const result = {
+          id: item.fullName,
+          title: item.name,
+          isSelected: markers.filter((marker) => marker.id === item.fullName).length > 0 || lines.filter((line) => line.id === item.fullName).length > 0,
+          children: mapOntologyToDrawerItem(item.children),
+        };
+  
+        drawerItems.push(result);
+      } else if ((item.instances?.length ?? 0) > 0) {
+        const result = {
+          id: item.fullName,
+          title: item.name,
+          isSelected: markers.filter((marker) => marker.id === item.fullName).length > 0 || lines.filter((line) => line.id === item.fullName).length > 0,
+          children: mapInstanceToDrawerItem(item.instances!),
+        };
+  
+        drawerItems.push(result);
+      }
+    });
+  
+    return drawerItems;
+  }, [mapInstanceToDrawerItem, markers, lines]);
 
   const handleMakerClick = (id: string) => {
     setSelectedMarker(id);
   }
 
+  const handleDrawerItemClick = (id: string) => {
+    handleMakerClick(id);
+  }
+
   return (<ChakraProvider theme={theme}>
     <Box display='flex' flexDirection="row" width="100vw" height="100vh">
-      {ontology && <CustomDrawer items={mapOntologyToDrawerItem(ontology)} />}
+      {ontology && <CustomDrawer items={mapOntologyToDrawerItem(ontology)} onClick={handleDrawerItemClick}/>}
       <Box display="flex" width="100vw" height="100vh" position="relative">
         <SearchModal subjects={subjects} onSearch={handleSearch} />
-        <Modal isOpen={selectedMarker != null && selectedMarker !== ""} style={customStyles} onRequestClose={() => setSelectedMarker(null)}>
+        <Modal ariaHideApp={false} isOpen={selectedMarker != null && selectedMarker !== ""} style={customStyles} onRequestClose={() => setSelectedMarker(null)}>
           <PropertiesModal fullName={selectedMarker ?? ""}/>
         </Modal>
         {markers && <Maps markers={markers} lines={lines} onMarkerSelected={handleMakerClick} />}
