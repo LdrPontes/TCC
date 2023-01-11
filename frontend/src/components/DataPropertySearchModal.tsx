@@ -52,7 +52,7 @@ const DataPropertySearchModal: React.FC<DataPropertySearchModalProps> = ({ isOpe
   return isOpen ?
     <VStack backgroundColor="white" zIndex={1} padding={8} borderRadius={10} width="100%" alignItems="start">
       <HStack width="100%" justifyContent="space-between" marginBottom={10}>
-        <Text fontWeight="bold" marginBottom={2}>Filter by Data Properties</Text>
+        <Text fontWeight="bold" marginBottom={2}>Filter</Text>
         <Button borderRadius={45} backgroundColor="transparent" onClick={handleCloseModal}>^</Button>
       </HStack>
       <SimpleGrid minChildWidth='100px' spacing="8px" paddingX={2} backgroundColor="gray.100" borderRadius={10} width="100%">

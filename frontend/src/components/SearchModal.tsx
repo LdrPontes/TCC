@@ -151,7 +151,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ subjects, onSearch }: SearchM
       <HStack width="100%" justifyContent="space-between" marginTop={10}>
         <Button borderRadius={45} disabled={triplesSearch.length === 0} onClick={() => onSearch(triplesSearch)}>Search</Button>
         <HStack>
-          <Button disabled={triplesSearch.length === 0} aria-label="Filter" outline="none" borderRadius="30" colorScheme="teal" onClick={() => setFilterOpen(prev => !prev)}>Add filter by Data Properties</Button>
+          <Button disabled={triplesSearch.length === 0} aria-label="Filter" outline="none" borderRadius="30" colorScheme="teal" onClick={() => setFilterOpen(prev => !prev)}>Add filter</Button>
           <Button borderRadius={45} backgroundColor="red.300" color="white" onClick={clearModal}>Clear</Button>
         </HStack>
       </HStack>

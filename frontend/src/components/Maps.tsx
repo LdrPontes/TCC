@@ -64,7 +64,7 @@ const Maps: React.FC<MapProps> = ({ markers, lines, onMarkerSelected }) => {
           options={{
             strokeColor: line.color ?? "#ff2527",
             strokeOpacity: 1,
-            strokeWeight: 3,
+            strokeWeight: 4,
           }} />;
       })}
 
