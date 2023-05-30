@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<catalog prefer="public" xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
-    <group id="Folder Repository, directory=, recursive=true, Auto-Update=true, version=2" prefer="public" xml:base="">
-        <uri id="Automatically generated entry, Timestamp=1665777663208" name="http://purl.obolibrary.org/obo/envo.owl" uri="Untitled.owl"/>
-        <uri id="Automatically generated entry, Timestamp=1665777663208" name="http://www.semanticweb.org/mateus/ontologies/2019/9/mobility_&amp;_education" uri="final_ontology.owl"/>
-        <uri id="Automatically generated entry, Timestamp=1665777663208" name="http://www.w3.org/2002/07/owl" uri="dados_test.owl"/>
-    </group>
-</catalog>
